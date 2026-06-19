@@ -333,6 +333,81 @@
       font-family: 'Helvetica Neue', Arial, sans-serif;
     }
 
+    /* ───── MODAL ───── */
+    #modal-overlay {
+      position: fixed; inset: 0; z-index: 150;
+      background: rgba(58, 53, 48, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.2s ease;
+    }
+    #modal-overlay.open { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      max-width: 680px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.4rem 1.6rem 1rem;
+      border-bottom: 0.5px solid var(--border);
+      position: sticky; top: 0;
+      background: var(--bg-card);
+    }
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--text-primary);
+    }
+    .modal-close {
+      background: none; border: none;
+      font-size: 22px; cursor: pointer;
+      color: var(--text-hint); line-height: 1;
+      padding: 0.2rem 0.4rem;
+      transition: color 0.18s;
+    }
+    .modal-close:hover { color: var(--text-primary); }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      padding: 1.4rem 1.6rem 1.8rem;
+    }
+    .modal-card {
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .modal-card:hover { transform: translateY(-2px); border-color: #b0a090; }
+    .modal-card:hover .modal-card-img { background: #e4dbd0; }
+    .modal-card-img {
+      height: 120px;
+      background: var(--bg-section);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+      transition: background 0.2s;
+    }
+    .modal-card-info { padding: 0.75rem 0.9rem; }
+    .modal-card-name { font-size: 13px; color: var(--text-primary); margin-bottom: 0.25rem; }
+    .modal-card-price { font-size: 12px; color: var(--text-hint); font-family: 'Helvetica Neue', Arial, sans-serif; }
+
     /* RESPONSIVE */
     @media (max-width: 600px) {
       nav { padding: 1rem 1.2rem; }
@@ -341,10 +416,11 @@
       .section { padding: 2.5rem 1.2rem; }
       .category-grid, .product-grid { grid-template-columns: 1fr; }
       .contact-section { padding: 2.5rem 1.2rem; }
+      .modal-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; }
+      *, *::before, *::after { transition: none !important; animation: none !important; }
     }
   </style>
 </head>
@@ -360,6 +436,17 @@
     <button class="lang-btn" onclick="selectLang('en')">English</button>
     <span class="lang-sep">|</span>
     <button class="lang-btn" onclick="selectLang('ja')">日本語</button>
+  </div>
+</div>
+
+<!-- ───── MODAL ───── -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title"></span>
+      <button class="modal-close" onclick="closeModalDirect()" aria-label="閉じる">×</button>
+    </div>
+    <div class="modal-grid" id="modal-grid"></div>
   </div>
 </div>
 
@@ -389,15 +476,15 @@
     <p class="section-eyebrow" data-key="cat_label"></p>
     <h2 class="section-title" data-key="cat_title"></h2>
     <div class="category-grid">
-      <div class="category-card">
+      <div class="category-card" onclick="openModal('pierce')">
         <div class="category-img">💎</div>
         <div class="category-label" data-key="cat_pierce"></div>
       </div>
-      <div class="category-card">
+      <div class="category-card" onclick="openModal('earring')">
         <div class="category-img">🌸</div>
         <div class="category-label" data-key="cat_earring"></div>
       </div>
-      <div class="category-card">
+      <div class="category-card" onclick="openModal('bracelet')">
         <div class="category-img">✨</div>
         <div class="category-label" data-key="cat_bracelet"></div>
       </div>
@@ -471,72 +558,130 @@
 </div><!-- /#main-site -->
 
 <script>
+  /* ───── PRODUCT DATA ───── */
+  const products = {
+    pierce: {
+      ja: { title: "ピアス", items: [
+        { emoji: "💎", name: "ターコイズ ピアス", price: "¥2,800" },
+        { emoji: "🌙", name: "ムーン ピアス", price: "¥2,400" },
+        { emoji: "🌸", name: "フラワー ピアス", price: "¥2,600" },
+        { emoji: "⭐", name: "スター ピアス", price: "¥2,200" },
+        { emoji: "🪨", name: "ラピスラズリ ピアス", price: "¥3,200" },
+        { emoji: "🔮", name: "アメジスト ピアス", price: "¥3,400" },
+      ]},
+      en: { title: "Pierced Earrings", items: [
+        { emoji: "💎", name: "Turquoise Pierce", price: "¥2,800" },
+        { emoji: "🌙", name: "Moon Pierce", price: "¥2,400" },
+        { emoji: "🌸", name: "Flower Pierce", price: "¥2,600" },
+        { emoji: "⭐", name: "Star Pierce", price: "¥2,200" },
+        { emoji: "🪨", name: "Lapis Lazuli Pierce", price: "¥3,200" },
+        { emoji: "🔮", name: "Amethyst Pierce", price: "¥3,400" },
+      ]}
+    },
+    earring: {
+      ja: { title: "イヤリング", items: [
+        { emoji: "🌿", name: "リーフ イヤリング", price: "¥2,400" },
+        { emoji: "🍂", name: "オータム イヤリング", price: "¥2,600" },
+        { emoji: "🪸", name: "コーラル イヤリング", price: "¥2,800" },
+        { emoji: "🌊", name: "ウェーブ イヤリング", price: "¥2,400" },
+        { emoji: "🌺", name: "ハイビスカス イヤリング", price: "¥2,200" },
+        { emoji: "🫧", name: "バブル イヤリング", price: "¥2,000" },
+      ]},
+      en: { title: "Clip-on Earrings", items: [
+        { emoji: "🌿", name: "Leaf Clip-on", price: "¥2,400" },
+        { emoji: "🍂", name: "Autumn Clip-on", price: "¥2,600" },
+        { emoji: "🪸", name: "Coral Clip-on", price: "¥2,800" },
+        { emoji: "🌊", name: "Wave Clip-on", price: "¥2,400" },
+        { emoji: "🌺", name: "Hibiscus Clip-on", price: "¥2,200" },
+        { emoji: "🫧", name: "Bubble Clip-on", price: "¥2,000" },
+      ]}
+    },
+    bracelet: {
+      ja: { title: "ブレスレット", items: [
+        { emoji: "🪨", name: "ストーン ブレスレット", price: "¥3,600" },
+        { emoji: "🌿", name: "グリーン ブレスレット", price: "¥3,200" },
+        { emoji: "🔮", name: "クリスタル ブレスレット", price: "¥3,800" },
+        { emoji: "🧡", name: "アンバー ブレスレット", price: "¥3,400" },
+        { emoji: "🌙", name: "ムーンストーン ブレスレット", price: "¥4,000" },
+        { emoji: "💚", name: "ジェイド ブレスレット", price: "¥3,600" },
+      ]},
+      en: { title: "Bracelets", items: [
+        { emoji: "🪨", name: "Stone Bracelet", price: "¥3,600" },
+        { emoji: "🌿", name: "Green Bracelet", price: "¥3,200" },
+        { emoji: "🔮", name: "Crystal Bracelet", price: "¥3,800" },
+        { emoji: "🧡", name: "Amber Bracelet", price: "¥3,400" },
+        { emoji: "🌙", name: "Moonstone Bracelet", price: "¥4,000" },
+        { emoji: "💚", name: "Jade Bracelet", price: "¥3,600" },
+      ]}
+    }
+  };
+
+  /* ───── MODAL ───── */
+  function openModal(category) {
+    const lang = currentLang || 'ja';
+    const data = products[category][lang];
+    document.getElementById('modal-title').textContent = data.title;
+    document.getElementById('modal-grid').innerHTML = data.items.map(item => `
+      <div class="modal-card">
+        <div class="modal-card-img">${item.emoji}</div>
+        <div class="modal-card-info">
+          <div class="modal-card-name">${item.name}</div>
+          <div class="modal-card-price">${item.price}</div>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModalDirect() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModalDirect();
+  });
+
+  /* ───── COPY ───── */
   const copy = {
     ja: {
-      nav_shop: "shop",
-      nav_about: "about",
-      nav_contact: "contact",
+      nav_shop: "shop", nav_about: "about", nav_contact: "contact",
       hero_title: "日常に寄り添う、<br>小さなアクセサリー",
       hero_sub: "シンプルな素材と丁寧な手仕事から生まれる、<br>毎日つけたくなるアクセサリー。",
       hero_btn: "collection を見る",
-      cat_label: "category",
-      cat_title: "カテゴリーから選ぶ",
-      cat_pierce: "ピアス",
-      cat_earring: "イヤリング",
-      cat_bracelet: "ブレスレット",
-      new_label: "new arrival",
-      new_title: "新着アイテム",
-      p1_name: "ターコイズ ピアス",
-      p2_name: "リーフ イヤリング",
-      p3_name: "ストーン ブレスレット",
-      about_label: "about",
-      about_title: "aimaya accessory について",
+      cat_label: "category", cat_title: "カテゴリーから選ぶ",
+      cat_pierce: "ピアス", cat_earring: "イヤリング", cat_bracelet: "ブレスレット",
+      new_label: "new arrival", new_title: "新着アイテム",
+      p1_name: "ターコイズ ピアス", p2_name: "リーフ イヤリング", p3_name: "ストーン ブレスレット",
+      about_label: "about", about_title: "aimaya accessory について",
       about_p1: "aimaya accessory は、自然素材を大切にした手作りアクセサリーブランドです。石・木・金属の素朴な美しさをそのままに、毎日のコーデに馴染むシンプルなデザインを追求しています。",
       about_p2: "ひとつひとつ丁寧に制作しており、世界にひとつだけの表情をお届けします。",
-      contact_label: "contact",
-      contact_title: "お問い合わせ",
-      form_name: "お名前",
-      form_email: "メールアドレス",
-      form_msg: "メッセージ",
-      form_send: "送信する",
-      inp_name: "山田 花子",
-      inp_email: "example@mail.com",
-      inp_msg: "ご質問・ご要望などお気軽にどうぞ",
-      toggle: "EN",
-      lang_attr: "ja",
+      contact_label: "contact", contact_title: "お問い合わせ",
+      form_name: "お名前", form_email: "メールアドレス", form_msg: "メッセージ", form_send: "送信する",
+      inp_name: "山田 花子", inp_email: "example@mail.com", inp_msg: "ご質問・ご要望などお気軽にどうぞ",
+      toggle: "EN", lang_attr: "ja",
     },
     en: {
-      nav_shop: "shop",
-      nav_about: "about",
-      nav_contact: "contact",
+      nav_shop: "shop", nav_about: "about", nav_contact: "contact",
       hero_title: "Small accessories<br>for everyday life",
       hero_sub: "Handcrafted with natural materials,<br>designed to wear every day.",
       hero_btn: "view collection",
-      cat_label: "category",
-      cat_title: "shop by category",
-      cat_pierce: "pierced earrings",
-      cat_earring: "clip-on earrings",
-      cat_bracelet: "bracelets",
-      new_label: "new arrival",
-      new_title: "new arrivals",
-      p1_name: "turquoise pierced earrings",
-      p2_name: "leaf clip-on earrings",
-      p3_name: "stone bracelet",
-      about_label: "about",
-      about_title: "about aimaya accessory",
+      cat_label: "category", cat_title: "shop by category",
+      cat_pierce: "pierced earrings", cat_earring: "clip-on earrings", cat_bracelet: "bracelets",
+      new_label: "new arrival", new_title: "new arrivals",
+      p1_name: "turquoise pierced earrings", p2_name: "leaf clip-on earrings", p3_name: "stone bracelet",
+      about_label: "about", about_title: "about aimaya accessory",
       about_p1: "aimaya accessory is a handmade jewelry brand that cherishes natural materials. We explore simple designs using the quiet beauty of stone, wood, and metal — pieces that blend effortlessly into everyday style.",
       about_p2: "Each piece is crafted one by one with care, giving every item its own unique character.",
-      contact_label: "contact",
-      contact_title: "get in touch",
-      form_name: "name",
-      form_email: "email address",
-      form_msg: "message",
-      form_send: "send",
-      inp_name: "Jane Doe",
-      inp_email: "example@mail.com",
-      inp_msg: "Feel free to ask anything.",
-      toggle: "日本語",
-      lang_attr: "en",
+      contact_label: "contact", contact_title: "get in touch",
+      form_name: "name", form_email: "email address", form_msg: "message", form_send: "send",
+      inp_name: "Jane Doe", inp_email: "example@mail.com", inp_msg: "Feel free to ask anything.",
+      toggle: "日本語", lang_attr: "en",
     }
   };
 
