@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>aimaya accessory</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f9f6f1;
+      --bg-card: #ffffff;
+      --bg-section: #f2ede6;
+      --text-primary: #3a3530;
+      --text-muted: #7a7068;
+      --text-hint: #a09888;
+      --border: #e0d8cf;
+      --border-dark: #c8bfb5;
+      --radius-sm: 4px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+    }
+
+    body {
+      font-family: 'Georgia', 'Hiragino Mincho ProN', serif;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      line-height: 1.7;
+    }
+
+    /* ───── LANGUAGE SPLASH ───── */
+    #lang-splash {
+      position: fixed; inset: 0; z-index: 200;
+      background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 2.8rem;
+      transition: opacity 0.5s ease;
+    }
+    #lang-splash.hidden { opacity: 0; pointer-events: none; }
+
+    .splash-logo {
+      font-size: 22px;
+      letter-spacing: 0.2em;
+      color: var(--text-primary);
+      font-weight: 400;
+    }
+    .splash-tagline {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: var(--text-hint);
+      text-align: center;
+      margin-top: 0.5rem;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      text-transform: uppercase;
+    }
+    .lang-options {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .lang-btn {
+      padding: 0.7rem 2.4rem;
+      border: 0.5px solid var(--text-primary);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      color: var(--text-primary);
+      background: transparent;
+      cursor: pointer;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      transition: background 0.22s, color 0.22s;
+    }
+    .lang-btn:hover { background: var(--text-primary); color: var(--bg); }
+    .lang-sep { font-size: 14px; color: var(--border-dark); }
+
+    /* ───── MAIN SITE ───── */
+    #main-site { display: none; }
+
+    /* NAV */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 2.5rem;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--bg-card);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo {
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      color: var(--text-primary);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: inherit;
+      transition: color 0.18s;
+    }
+    .nav-links a:hover { color: var(--text-primary); }
+    .lang-toggle {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      color: var(--text-hint);
+      border: 0.5px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      padding: 0.22rem 0.65rem;
+      transition: all 0.18s;
+      background: transparent;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    .lang-toggle:hover { color: var(--text-primary); border-color: var(--text-primary); }
+
+    /* HERO */
+    .hero {
+      padding: 5rem 2.5rem 4rem;
+      text-align: center;
+      background: var(--bg);
+    }
+    .hero-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: var(--text-hint);
+      text-transform: uppercase;
+      margin-bottom: 1.4rem;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: var(--text-primary);
+      line-height: 1.55;
+      margin-bottom: 1.2rem;
+      letter-spacing: 0.02em;
+    }
+    .hero p {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 380px;
+      margin: 0 auto 2rem;
+      line-height: 1.9;
+    }
+    .btn-outline {
+      display: inline-block;
+      padding: 0.7rem 2.2rem;
+      border: 0.5px solid var(--text-primary);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      color: var(--text-primary);
+      text-decoration: none;
+      background: transparent;
+      cursor: pointer;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      transition: background 0.22s, color 0.22s;
+    }
+    .btn-outline:hover { background: var(--text-primary); color: var(--bg); }
+
+    /* SECTIONS */
+    .section { padding: 3.5rem 2.5rem; }
+    .section-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-align: center;
+      color: var(--text-hint);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 400;
+      text-align: center;
+      margin-bottom: 2.2rem;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+
+    /* CATEGORY GRID */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .category-card {
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--bg-card);
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .category-card:hover { border-color: #b0a090; transform: translateY(-2px); }
+    .category-img {
+      height: 110px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+      background: var(--bg-section);
+    }
+    .category-label {
+      padding: 0.75rem 1.1rem;
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* PRODUCT GRID */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .product-card {
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .product-card:hover { transform: translateY(-2px); }
+    .product-card:hover .product-img { background: #e4dbd0; }
+    .product-img {
+      height: 140px;
+      background: var(--bg-section);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.4rem;
+      transition: background 0.2s;
+    }
+    .product-info { padding: 0.85rem 1.1rem; }
+    .product-name {
+      font-size: 13px;
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
+    }
+    .product-price {
+      font-size: 12px;
+      color: var(--text-hint);
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* ABOUT */
+    .about-section {
+      background: var(--bg-section);
+      padding: 4rem 2.5rem;
+      text-align: center;
+    }
+    .about-inner { max-width: 520px; margin: 0 auto; }
+    .about-section p {
+      font-size: 14px;
+      color: #6a6058;
+      line-height: 1.95;
+      margin-bottom: 1.2rem;
+    }
+
+    /* CONTACT */
+    .contact-section {
+      padding: 3.5rem 2.5rem;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .contact-section .section-eyebrow { text-align: left; }
+    .contact-section .section-title { text-align: left; margin-bottom: 1.8rem; }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-group label {
+      font-size: 11px;
+      color: var(--text-hint);
+      display: block;
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.08em;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      text-transform: uppercase;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.65rem 1rem;
+      border: 0.5px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      outline: none;
+      font-family: 'Georgia', 'Hiragino Mincho ProN', serif;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--text-primary); }
+    .form-group textarea { height: 110px; resize: vertical; }
+    .btn-fill {
+      width: 100%; padding: 0.8rem;
+      border: none; border-radius: var(--radius-sm);
+      font-size: 13px; letter-spacing: 0.1em;
+      background: var(--text-primary); color: var(--bg);
+      cursor: pointer;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      transition: opacity 0.2s;
+    }
+    .btn-fill:hover { opacity: 0.82; }
+
+    /* DIVIDER */
+    hr.divider {
+      border: none;
+      border-top: 0.5px solid var(--border);
+      margin: 0 2.5rem;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      border-top: 0.5px solid var(--border);
+      font-size: 11px;
+      color: var(--text-hint);
+      letter-spacing: 0.1em;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      nav { padding: 1rem 1.2rem; }
+      .hero { padding: 3.5rem 1.2rem 3rem; }
+      .hero h1 { font-size: 1.7rem; }
+      .section { padding: 2.5rem 1.2rem; }
+      .category-grid, .product-grid { grid-template-columns: 1fr; }
+      .contact-section { padding: 2.5rem 1.2rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ───── LANGUAGE SPLASH ───── -->
+<div id="lang-splash" role="dialog" aria-label="Language selection">
+  <div>
+    <div class="splash-logo">aimaya accessory</div>
+    <div class="splash-tagline">please select your language</div>
+  </div>
+  <div class="lang-options">
+    <button class="lang-btn" onclick="selectLang('en')">English</button>
+    <span class="lang-sep">|</span>
+    <button class="lang-btn" onclick="selectLang('ja')">日本語</button>
+  </div>
+</div>
+
+<!-- ───── MAIN SITE ───── -->
+<div id="main-site">
+
+  <nav>
+    <div class="nav-logo">aimaya accessory</div>
+    <div class="nav-links">
+      <a href="#shop" data-key="nav_shop"></a>
+      <a href="#about" data-key="nav_about"></a>
+      <a href="#contact" data-key="nav_contact"></a>
+      <button class="lang-toggle" id="lang-toggle-btn" onclick="toggleLang()"></button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <p class="hero-eyebrow">natural · handmade · minimal</p>
+    <h1 data-key="hero_title"></h1>
+    <p data-key="hero_sub"></p>
+    <a href="#shop" class="btn-outline" data-key="hero_btn"></a>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="section" id="shop">
+    <p class="section-eyebrow" data-key="cat_label"></p>
+    <h2 class="section-title" data-key="cat_title"></h2>
+    <div class="category-grid">
+      <div class="category-card">
+        <div class="category-img">💎</div>
+        <div class="category-label" data-key="cat_pierce"></div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">🌸</div>
+        <div class="category-label" data-key="cat_earring"></div>
+      </div>
+      <div class="category-card">
+        <div class="category-img">✨</div>
+        <div class="category-label" data-key="cat_bracelet"></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- NEW ARRIVALS -->
+  <section class="section">
+    <p class="section-eyebrow" data-key="new_label"></p>
+    <h2 class="section-title" data-key="new_title"></h2>
+    <div class="product-grid">
+      <div class="product-card">
+        <div class="product-img">🔵</div>
+        <div class="product-info">
+          <div class="product-name" data-key="p1_name"></div>
+          <div class="product-price">¥2,800</div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img">🌿</div>
+        <div class="product-info">
+          <div class="product-name" data-key="p2_name"></div>
+          <div class="product-price">¥2,400</div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img">🪨</div>
+        <div class="product-info">
+          <div class="product-name" data-key="p3_name"></div>
+          <div class="product-price">¥3,600</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about-section" id="about">
+    <p class="section-eyebrow" data-key="about_label"></p>
+    <h2 class="section-title" style="margin-bottom:1.6rem;" data-key="about_title"></h2>
+    <div class="about-inner">
+      <p data-key="about_p1"></p>
+      <p data-key="about_p2"></p>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact-section" id="contact">
+    <p class="section-eyebrow" data-key="contact_label"></p>
+    <h2 class="section-title" data-key="contact_title"></h2>
+    <div class="form-group">
+      <label data-key="form_name"></label>
+      <input type="text" id="inp-name" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label data-key="form_email"></label>
+      <input type="email" id="inp-email" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label data-key="form_msg"></label>
+      <textarea id="inp-msg"></textarea>
+    </div>
+    <button class="btn-fill" data-key="form_send"></button>
+  </section>
+
+  <footer>
+    © 2025 aimaya accessory · all rights reserved
+  </footer>
+
+</div><!-- /#main-site -->
+
+<script>
+  const copy = {
+    ja: {
+      nav_shop: "shop",
+      nav_about: "about",
+      nav_contact: "contact",
+      hero_title: "日常に寄り添う、<br>小さなアクセサリー",
+      hero_sub: "シンプルな素材と丁寧な手仕事から生まれる、<br>毎日つけたくなるアクセサリー。",
+      hero_btn: "collection を見る",
+      cat_label: "category",
+      cat_title: "カテゴリーから選ぶ",
+      cat_pierce: "ピアス",
+      cat_earring: "イヤリング",
+      cat_bracelet: "ブレスレット",
+      new_label: "new arrival",
+      new_title: "新着アイテム",
+      p1_name: "ターコイズ ピアス",
+      p2_name: "リーフ イヤリング",
+      p3_name: "ストーン ブレスレット",
+      about_label: "about",
+      about_title: "aimaya accessory について",
+      about_p1: "aimaya accessory は、自然素材を大切にした手作りアクセサリーブランドです。石・木・金属の素朴な美しさをそのままに、毎日のコーデに馴染むシンプルなデザインを追求しています。",
+      about_p2: "ひとつひとつ丁寧に制作しており、世界にひとつだけの表情をお届けします。",
+      contact_label: "contact",
+      contact_title: "お問い合わせ",
+      form_name: "お名前",
+      form_email: "メールアドレス",
+      form_msg: "メッセージ",
+      form_send: "送信する",
+      inp_name: "山田 花子",
+      inp_email: "example@mail.com",
+      inp_msg: "ご質問・ご要望などお気軽にどうぞ",
+      toggle: "EN",
+      lang_attr: "ja",
+    },
+    en: {
+      nav_shop: "shop",
+      nav_about: "about",
+      nav_contact: "contact",
+      hero_title: "Small accessories<br>for everyday life",
+      hero_sub: "Handcrafted with natural materials,<br>designed to wear every day.",
+      hero_btn: "view collection",
+      cat_label: "category",
+      cat_title: "shop by category",
+      cat_pierce: "pierced earrings",
+      cat_earring: "clip-on earrings",
+      cat_bracelet: "bracelets",
+      new_label: "new arrival",
+      new_title: "new arrivals",
+      p1_name: "turquoise pierced earrings",
+      p2_name: "leaf clip-on earrings",
+      p3_name: "stone bracelet",
+      about_label: "about",
+      about_title: "about aimaya accessory",
+      about_p1: "aimaya accessory is a handmade jewelry brand that cherishes natural materials. We explore simple designs using the quiet beauty of stone, wood, and metal — pieces that blend effortlessly into everyday style.",
+      about_p2: "Each piece is crafted one by one with care, giving every item its own unique character.",
+      contact_label: "contact",
+      contact_title: "get in touch",
+      form_name: "name",
+      form_email: "email address",
+      form_msg: "message",
+      form_send: "send",
+      inp_name: "Jane Doe",
+      inp_email: "example@mail.com",
+      inp_msg: "Feel free to ask anything.",
+      toggle: "日本語",
+      lang_attr: "en",
+    }
+  };
+
+  let currentLang = null;
+
+  function applyLang(lang) {
+    currentLang = lang;
+    const t = copy[lang];
+    document.documentElement.lang = t.lang_attr;
+    document.querySelectorAll('[data-key]').forEach(el => {
+      const key = el.dataset.key;
+      if (t[key] !== undefined) el.innerHTML = t[key];
+    });
+    document.getElementById('inp-name').placeholder = t.inp_name;
+    document.getElementById('inp-email').placeholder = t.inp_email;
+    document.getElementById('inp-msg').placeholder = t.inp_msg;
+    document.getElementById('lang-toggle-btn').textContent = t.toggle;
+  }
+
+  function selectLang(lang) {
+    applyLang(lang);
+    const splash = document.getElementById('lang-splash');
+    splash.classList.add('hidden');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      document.getElementById('main-site').style.display = 'block';
+    }, 500);
+  }
+
+  function toggleLang() {
+    applyLang(currentLang === 'ja' ? 'en' : 'ja');
+  }
+</script>
+</body>
+</html>
